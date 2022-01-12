@@ -45,6 +45,7 @@ const server = http.createServer((rq, rs) => {
 
 		let is_user_exists = false;
 		let password_to_check = undefined;
+		let username_to_check = undefined;
 
 		for (let account_line of account_lines){
 			let account = account_line.split(';');
@@ -53,14 +54,22 @@ const server = http.createServer((rq, rs) => {
 			if(login === account_name){
 				is_user_exists = true;
 				password_to_check = account_pass;
+				username_to_check = account_name;
 				break; //Нашли пользователя, сохраним его пароль для последующей проверки
 			}
+		}
+
+		if(username_to_check === undefined || password_to_check === undefined) //Пустой пользователь
+		{
+			rs.writeHead(400);
+			rs.end('Empty field "user" or "pass"');
+			return; //Выходим с ошибкой
 		}
 
 		if(is_user_exists === false) //Не нашли пользователя
 		{
 			rs.writeHead(403);
-			rs.end('user does not exists');
+			rs.end('User does not exists');
 			return; //Выходим с ошибкой
 		}
 
@@ -71,13 +80,13 @@ const server = http.createServer((rq, rs) => {
 			return;
 		} else { //пароль не совпал
 			rs.writeHead(403);
-			rs.end('wrong password');
+			rs.end('Wrong password');
 			return; //Выходим с ошибкой
 		}
 		
 	}
 	
-	//Это не проверка пароля, а просто ктото попрсил страницу, отдадим её
+	//Это не проверка пароля, а просто кто-то попросил страницу, отдадим её
 	fs.readFile(path, (err, data) => {
     if (err) {
 		console.error(err);
